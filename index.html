@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Performance Analyzer - Teacher Curriculum & Passmarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js CDN for interactive visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header Navigation -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">📊</div>
+        <div>
+          <h1>Student Performance Analyzer</h1>
+          <p class="subtitle">Customizable curriculum (up to 20 subjects): define custom Subject Names, Full Marks & Pass Marks</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btnOpenSubjectConfig" class="btn btn-config" title="Set Subject Names, Full Marks and Pass Marks (e.g. Subject 1 = Maths, Full = 100, Pass = 36)">
+          ⚙️ Subject & Passmark Setup (<span id="headerSubjectCount">0</span>/20)
+        </button>
+        <button id="btnOpenExcelGrid" class="btn btn-excel" title="Add up to 70 students at a time in Excel spreadsheet format">
+          📑 Excel Batch Entry (Up to 70)
+        </button>
+        <button id="btnLoadSample" class="btn btn-secondary" title="Load sample curriculum with students">
+          ⚡ Load Sample Data
+        </button>
+        <button id="btnOpenImportModal" class="btn btn-secondary" title="Import student marks spreadsheet into the analyzer">
+          📤 Import CSV
+        </button>
+        <button id="btnExportCsv" class="btn btn-secondary" title="Export complete table as CSV spreadsheet">
+          📥 Export CSV
+        </button>
+        <button id="btnOpenAddModal" class="btn btn-primary">
+          ➕ Single Student
+        </button>
+      </div>
+    </header>
+
+    <!-- Teacher Curriculum Overview Banner -->
+    <section class="curriculum-banner">
+      <div class="curriculum-banner-content">
+        <div class="curriculum-badge-tag">📘 Active Curriculum:</div>
+        <div id="curriculumSummaryPills" class="curriculum-pills-container">
+          <!-- Dynamic pills like: Subject 1: Maths (100/36), Subject 2: Science (100/36) -->
+        </div>
+      </div>
+      <button class="btn btn-sm btn-secondary" onclick="openSubjectConfigModal()">✏️ Edit Subjects</button>
+    </section>
+
+    <!-- Key Metrics / KPI Summary Cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon blue">👥</div>
+        <div class="kpi-details">
+          <span class="kpi-label">Total Students</span>
+          <h2 id="kpiTotalStudents" class="kpi-value">0</h2>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon purple">📚</div>
+        <div class="kpi-details">
+          <span class="kpi-label">Subjects & Max Marks</span>
+          <h2 id="kpiCurriculumSummary" class="kpi-value">0 Subj / 0 Marks</h2>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon green">📈</div>
+        <div class="kpi-details">
+          <span class="kpi-label">Class Average</span>
+          <h2 id="kpiClassAverage" class="kpi-value">0%</h2>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon amber">🏆</div>
+        <div class="kpi-details">
+          <span class="kpi-label">Top Performer</span>
+          <h2 id="kpiTopPerformer" class="kpi-value">None</h2>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon teal">🎯</div>
+        <div class="kpi-details">
+          <span class="kpi-label">Passing Rate</span>
+          <h2 id="kpiPassingRate" class="kpi-value">0%</h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analytics & Charts Section -->
+    <section class="charts-section">
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>Class Grade Distribution</h3>
+          <span class="badge-hint">Proportion of student letter grades</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="gradeDistributionChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>Subject-wise Performance (% of Full Marks)</h3>
+          <span class="badge-hint">Class average % compared to subject full marks</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="subjectAverageChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Table Section -->
+    <section class="table-section">
+      <div class="table-toolbar">
+        <div class="toolbar-left">
+          <h3>Student Academic Records</h3>
+          <span id="recordCountBadge" class="record-badge">0 Students</span>
+        </div>
+        <div class="toolbar-right">
+          <!-- Live Search Input -->
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search by name or roll no..." autocomplete="off">
+          </div>
+
+          <!-- Grade Filter -->
+          <div class="filter-box">
+            <select id="gradeFilter">
+              <option value="ALL">All Grades</option>
+              <option value="A+">Grade A+ (90%+)</option>
+              <option value="A">Grade A (80-89%)</option>
+              <option value="B">Grade B (70-79%)</option>
+              <option value="C">Grade C (60-69%)</option>
+              <option value="D">Grade D (50-59%)</option>
+              <option value="F">Grade F (&lt;50%)</option>
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="filter-box">
+            <select id="statusFilter">
+              <option value="ALL">All Status</option>
+              <option value="Pass">Passed Students Only</option>
+              <option value="Fail">Failed Students Only</option>
+            </select>
+          </div>
+
+          <!-- Clear All Data Button -->
+          <button id="btnClearData" class="btn btn-danger-outline" title="Clear all stored student data">
+            🗑️ Clear Students
+          </button>
+        </div>
+      </div>
+
+      <!-- Data Table Responsive Container -->
+      <div class="table-container">
+        <table class="student-table" id="studentTable">
+          <thead id="studentTableHead">
+            <!-- Dynamically populated subject columns via JavaScript -->
+          </thead>
+          <tbody id="studentTableBody">
+            <!-- Dynamically populated rows via JavaScript -->
+          </tbody>
+        </table>
+
+        <!-- Empty state placeholder when no students exist -->
+        <div id="emptyState" class="empty-state">
+          <div class="empty-icon">📝</div>
+          <h4>No student records found</h4>
+          <p>Configure your subjects, add students manually, or import from CSV spreadsheet to explore.</p>
+          <div class="empty-actions">
+            <button id="btnEmptyConfig" class="btn btn-secondary">⚙️ Configure Subjects</button>
+            <button id="btnEmptyExcel" class="btn btn-excel">📑 Excel Grid (Up to 70)</button>
+            <button id="btnEmptyImport" class="btn btn-secondary">📤 Import CSV</button>
+            <button id="btnEmptyAdd" class="btn btn-primary">➕ Single Student</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal 1: Teacher's Subject, Full Marks & Pass Marks Builder (Up to 20 Subjects) -->
+  <div class="modal-backdrop" id="subjectConfigModal" aria-hidden="true">
+    <div class="modal-card modal-subject-card">
+      <div class="modal-header">
+        <div>
+          <h3>⚙️ Teacher's Subject, Full Marks & Pass Marks Setup</h3>
+          <p class="modal-subtext">Customize Subject Names (e.g. Maths), Full Marks (e.g. 100), and Pass Marks (e.g. 36) for up to 20 subjects.</p>
+        </div>
+        <button class="btn-close" id="btnCloseSubjectConfig" aria-label="Close modal">&times;</button>
+      </div>
+
+      <!-- Quick Controls Bar -->
+      <div class="subject-setup-controls">
+        <div class="controls-left">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnAddSubjectRow">
+            ➕ Add Subject Row
+          </button>
+          <div class="quick-count-selector">
+            <span>Quick Set:</span>
+            <button type="button" class="btn-chip" onclick="quickSetSubjectCount(3)">3 Subj</button>
+            <button type="button" class="btn-chip" onclick="quickSetSubjectCount(5)">5 Subj</button>
+            <button type="button" class="btn-chip" onclick="quickSetSubjectCount(8)">8 Subj</button>
+            <button type="button" class="btn-chip" onclick="quickSetSubjectCount(10)">10 Subj</button>
+            <button type="button" class="btn-chip" onclick="quickSetSubjectCount(15)">15 Subj</button>
+            <button type="button" class="btn-chip" onclick="quickSetSubjectCount(20)">20 Subj (Max)</button>
+          </div>
+        </div>
+        <div class="controls-right">
+          <span id="subjectCountBadge" class="subject-limit-badge">0 / 20 Subjects</span>
+        </div>
+      </div>
+
+      <!-- Presets for convenience -->
+      <div class="preset-bar">
+        <span class="preset-title">Presets:</span>
+        <button type="button" class="btn-chip" onclick="applyPreset('standard_36')">Standard 5 (Full 100, Pass 36)</button>
+        <button type="button" class="btn-chip" onclick="applyPreset('standard_40')">Standard 5 (Full 100, Pass 40)</button>
+        <button type="button" class="btn-chip" onclick="applyPreset('science_split')">Science Stream with Practicals (Theory 75/Pass 27, Lab 25/Pass 9)</button>
+        <button type="button" class="btn-chip" onclick="applyPreset('college_mixed')">College 8 Subjects (Mixed Full/Pass)</button>
+      </div>
+
+      <!-- Editable Subject Rows Form -->
+      <form id="subjectBuilderForm">
+        <div class="subject-rows-container" id="subjectRowsContainer">
+          <!-- Dynamically populated rows: Subject 1 = Maths, Fullmarks = 100, Passmark = 36 -->
+        </div>
+
+        <div class="curriculum-totals-summary">
+          <div>Total Subjects: <strong id="summarySubjCount">0</strong></div>
+          <div>Total Full Marks: <strong id="summaryFullMarks">0</strong></div>
+          <div>Total Pass Marks: <strong id="summaryPassMarks">0</strong></div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnCancelSubjectConfig">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveSubjectConfig">
+            💾 Save Subjects & Apply to Analyzer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Add / Edit Student Record -->
+  <div class="modal-backdrop" id="studentModal" aria-hidden="true">
+    <div class="modal-card modal-student-card">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalTitle">Add New Student</h3>
+          <p class="modal-subtext">Enter student details and marks obtained (validates against each subject's full marks and pass mark)</p>
+        </div>
+        <button class="btn-close" id="btnCloseModal" aria-label="Close modal">&times;</button>
+      </div>
+
+      <form id="studentForm">
+        <input type="hidden" id="studentIdInput" value="">
+
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label for="studentName">Student Full Name <span class="required">*</span></label>
+            <input type="text" id="studentName" placeholder="e.g. Alex Johnson" required>
+          </div>
+          <div class="form-group">
+            <label for="rollNumber">Roll Number / ID <span class="required">*</span></label>
+            <input type="text" id="rollNumber" placeholder="e.g. S-101" required>
+          </div>
+        </div>
+
+        <div class="form-divider">
+          <span>Marks Obtained (Checks Full Marks & Pass Marks)</span>
+        </div>
+
+        <!-- Dynamically rendered subject input fields (supports up to 20 subjects!) -->
+        <div class="form-grid-dynamic-subjects" id="studentSubjectInputsContainer">
+          <!-- Injected via JavaScript based on current subjects -->
+        </div>
+
+        <!-- Real-time calculation preview inside form -->
+        <div class="form-calculation-preview">
+          <div class="calc-preview-item">
+            <span class="calc-label">Total Score:</span>
+            <span id="previewTotal" class="calc-val">0 / 0</span>
+          </div>
+          <div class="calc-preview-item">
+            <span class="calc-label">Percentage:</span>
+            <span id="previewPercentage" class="calc-val">0.0%</span>
+          </div>
+          <div class="calc-preview-item">
+            <span class="calc-label">Grade:</span>
+            <span id="previewGrade" class="badge-grade grade-f">F</span>
+          </div>
+          <div class="calc-preview-item">
+            <span class="calc-label">Academic Status:</span>
+            <span id="previewStatus" class="status-pill status-fail">Pending</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnCancelModal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveStudent">Save Student Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Student Detail Report Card -->
+  <div class="modal-backdrop" id="detailModal" aria-hidden="true">
+    <div class="modal-card modal-detail-card">
+      <div class="modal-header">
+        <h3>Individual Student Academic Report Card</h3>
+        <button class="btn-close" id="btnCloseDetailModal" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="report-card-body" id="reportCardContent">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btnPrintReport">🖨️ Print / Save PDF</button>
+        <button type="button" class="btn btn-primary" id="btnCloseReport">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Import CSV Spreadsheet into Analyzer -->
+  <div class="modal-backdrop" id="importModal" aria-hidden="true">
+    <div class="modal-card modal-import-card">
+      <div class="modal-header">
+        <div>
+          <h3>📤 Import Student Records from CSV</h3>
+          <p class="modal-subtext">Batch load student names, roll numbers, and marks into the analyzer</p>
+        </div>
+        <button class="btn-close" id="btnCloseImportModal" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="import-modal-body">
+        <!-- Step 1: Download Template -->
+        <div class="import-step-card">
+          <div class="step-badge">Step 1</div>
+          <div class="step-info">
+            <strong>Download Sample CSV Template</strong>
+            <p>Get a spreadsheet pre-formatted with your currently configured subjects and full marks.</p>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnDownloadTemplate">
+            📥 Download Template
+          </button>
+        </div>
+
+        <!-- Step 2: Upload CSV File -->
+        <div class="import-step-card">
+          <div class="step-badge">Step 2</div>
+          <div class="step-info">
+            <strong>Choose or Drop your Filled CSV File</strong>
+            <p>Select your CSV file to import. The analyzer will automatically validate scores.</p>
+          </div>
+        </div>
+
+        <div class="csv-upload-dropzone" id="csvDropZone">
+          <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display: none;">
+          <div class="dropzone-icon">📄</div>
+          <div class="dropzone-text">
+            <strong>Click here to browse</strong> or drag & drop your .csv file
+          </div>
+          <span class="dropzone-hint" id="dropzoneFileName">Supports comma-separated (.csv) files</span>
+        </div>
+
+        <!-- Import Options -->
+        <div class="import-mode-options">
+          <label class="radio-option">
+            <input type="radio" name="importMode" value="append" checked>
+            <span><strong>Add to existing students</strong> (Keep current records)</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="importMode" value="replace">
+            <span><strong>Replace existing students</strong> (Start fresh with CSV file)</span>
+          </label>
+        </div>
+
+        <!-- Parsed Preview -->
+        <div id="importPreviewContainer" style="display: none;">
+          <div class="preview-header">
+            <strong id="importPreviewSummary">Parsed 0 students</strong>
+            <span class="badge-hint">Preview (First 5 records)</span>
+          </div>
+          <div class="table-container" style="max-height: 180px; overflow-y: auto;">
+            <table class="student-table" id="importPreviewTable">
+              <thead id="importPreviewHead"></thead>
+              <tbody id="importPreviewBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btnCancelImport">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btnConfirmImport" disabled>
+          ✅ Load Students into Analyzer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Excel-Style Batch Student Entry (Up to 70 Students) -->
+  <div class="modal-backdrop" id="excelGridModal" aria-hidden="true">
+    <div class="modal-card modal-excel-card">
+      <div class="modal-header">
+        <div class="excel-header-title">
+          <div class="excel-badge-icon">📑</div>
+          <div>
+            <h3>Excel Spreadsheet Student Entry (Up to 70 Students)</h3>
+            <p class="modal-subtext">Add up to 70 students at once in spreadsheet format. Type directly into the cells or copy & paste from Microsoft Excel / Google Sheets.</p>
+          </div>
+        </div>
+        <button class="btn-close" id="btnCloseExcelGrid" aria-label="Close modal">&times;</button>
+      </div>
+
+      <!-- Excel Toolbar -->
+      <div class="excel-toolbar">
+        <div class="excel-toolbar-left">
+          <div class="excel-btn-group">
+            <span class="excel-tool-label">Generate Rows:</span>
+            <button type="button" class="btn-chip" onclick="setExcelRowCount(10)">10 Rows</button>
+            <button type="button" class="btn-chip" onclick="setExcelRowCount(25)">25 Rows</button>
+            <button type="button" class="btn-chip" onclick="setExcelRowCount(50)">50 Rows</button>
+            <button type="button" class="btn-chip" onclick="setExcelRowCount(70)">70 Rows (Max)</button>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnAddSingleExcelRow">
+            ➕ Add 1 Row
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnFillDemoExcel">
+            ⚡ Fill Demo Data
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnOpenPasteModal" title="Paste tab-separated data from Microsoft Excel or Google Sheets">
+            📋 Paste from Excel
+          </button>
+          <button type="button" class="btn btn-danger-outline btn-sm" id="btnClearExcelGrid">
+            🧹 Clear Grid
+          </button>
+        </div>
+        <div class="excel-toolbar-right">
+          <span id="excelGridCountBadge" class="excel-count-badge">0 / 70 Rows</span>
+        </div>
+      </div>
+
+      <!-- Quick Paste Textarea Helper -->
+      <div id="excelPasteArea" class="excel-paste-box" style="display: none;">
+        <div class="paste-box-header">
+          <strong>📋 Paste from Microsoft Excel / Google Sheets</strong>
+          <button type="button" class="btn-close btn-close-sm" onclick="toggleExcelPasteArea()">&times;</button>
+        </div>
+        <p class="paste-hint">Copy rows and columns from Excel (Roll No, Student Name, Marks...) and paste (Ctrl+V) into the box below:</p>
+        <textarea id="excelPasteInput" placeholder="Paste tab-delimited cells here from Excel..." rows="4"></textarea>
+        <div class="paste-box-actions">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="toggleExcelPasteArea()">Cancel</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btnApplyExcelPaste">Apply to Grid</button>
+        </div>
+      </div>
+
+      <!-- Spreadsheet Grid Table Container -->
+      <div class="excel-spreadsheet-container" id="excelSpreadsheetContainer">
+        <table class="excel-spreadsheet-table" id="excelSpreadsheetTable">
+          <thead id="excelGridHead">
+            <!-- Dynamically populated headers matching subjects -->
+          </thead>
+          <tbody id="excelGridBody">
+            <!-- Dynamically generated editable rows up to 70 -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Excel Footer with Save Modes -->
+      <div class="excel-modal-footer">
+        <div class="excel-import-options">
+          <label class="radio-option">
+            <input type="radio" name="excelSaveMode" value="replace" checked>
+            <span><strong>Replace:</strong> Set analyzer students to these grid records</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="excelSaveMode" value="append">
+            <span><strong>Append:</strong> Add grid records to current student list</span>
+          </label>
+        </div>
+        <div class="excel-footer-buttons">
+          <button type="button" class="btn btn-secondary" id="btnCancelExcelGrid">Cancel</button>
+          <button type="button" class="btn btn-primary btn-excel-save" id="btnSaveExcelGrid">
+            💾 Save All to Analyzer (<span id="excelValidCount">0</span> Students Ready)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

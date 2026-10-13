@@ -70,9 +70,4 @@ Teachers can add and manage up to **70 students at a time** in an interactive sp
 
 ---
 
-#
-### Method 2: Local Server via Python
-```powershell
-python -m http.server 3000 --directory "C:\Users\LENOVO\.gemini\antigravity\scratch\student-performance-analyzer"
-```
-Navigate to **`http://localhost:3000`** in any web browser.
+

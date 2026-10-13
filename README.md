@@ -70,14 +70,7 @@ Teachers can add and manage up to **70 students at a time** in an interactive sp
 
 ---
 
-## 🏃 Running the Application
-
-### Method 1: Direct Browser Launch
-Open in your file browser and double-click:
-[`index.html`](file:///C:/Users/LENOVO/.gemini/antigravity/scratch/student-performance-analyzer/index.html)
-Located at:
-`C:\Users\LENOVO\.gemini\antigravity\scratch\student-performance-analyzer\index.html`
-
+#
 ### Method 2: Local Server via Python
 ```powershell
 python -m http.server 3000 --directory "C:\Users\LENOVO\.gemini\antigravity\scratch\student-performance-analyzer"

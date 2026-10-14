@@ -12,6 +12,35 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <!-- ============================================================
+       PASSWORD GATE — blocks app until correct password is entered
+       ============================================================ -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+      <div class="login-logo">📊</div>
+      <h2 class="login-title">Student Performance Analyzer</h2>
+      <p class="login-subtitle">Enter the teacher password to continue</p>
+      <form id="loginForm" autocomplete="off">
+        <div class="login-input-wrap">
+          <span class="login-input-icon">🔒</span>
+          <input
+            type="password"
+            id="loginPasswordInput"
+            class="login-input"
+            placeholder="Password"
+            autofocus
+            autocomplete="new-password"
+          >
+        </div>
+        <button type="submit" class="btn btn-primary login-btn">Unlock App</button>
+        <p id="loginError" class="login-error" style="display:none;">
+          ❌ Incorrect password. Please try again.
+        </p>
+      </form>
+      <p class="login-hint">Contact your administrator if you have forgotten the password.</p>
+    </div>
+  </div>
+
   <div class="app-container">
     <!-- Header Navigation -->
     <header class="app-header">

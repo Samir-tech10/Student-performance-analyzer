@@ -1587,3 +1587,132 @@ body {
     padding: 0;
   }
 }
+
+/* ==========================================================================
+   Login / Password Gate
+   ========================================================================== */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);
+  backdrop-filter: blur(4px);
+}
+
+.login-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 48px 44px 36px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow:
+    0 25px 60px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(255,255,255,0.06);
+  text-align: center;
+  animation: loginCardPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes loginCardPop {
+  from { opacity: 0; transform: scale(0.85) translateY(20px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+
+.login-logo {
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 4px 8px rgba(79,70,229,0.3));
+}
+
+.login-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 8px;
+}
+
+.login-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 28px;
+}
+
+.login-input-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.login-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.login-input {
+  width: 100%;
+  padding: 13px 16px 13px 44px;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: var(--font-family);
+  color: var(--text-main);
+  background: var(--bg-main);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  letter-spacing: 0.1em;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+  background: #ffffff;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 13px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+}
+
+.login-error {
+  font-size: 0.875rem;
+  color: var(--danger);
+  font-weight: 500;
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  animation: shakeError 0.4s ease;
+}
+
+@keyframes shakeError {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
+
+.login-hint {
+  font-size: 0.78rem;
+  color: var(--text-subtle);
+  margin: 20px 0 0;
+}
+
+/* Hide app while login overlay is shown (extra guard) */
+.app-locked {
+  display: none !important;
+}
+

@@ -2251,6 +2251,53 @@ window.deleteStudent = deleteStudent;
 
 // Bootstrap
 document.addEventListener('DOMContentLoaded', () => {
+  // ── Password Gate ──────────────────────────────────────────────────────────
+  const AUTH_KEY = 'spa_authenticated';
+  const CORRECT_PASSWORD = 'admin';
+
+  const loginOverlay       = document.getElementById('loginOverlay');
+  const loginForm          = document.getElementById('loginForm');
+  const loginPasswordInput = document.getElementById('loginPasswordInput');
+  const loginError         = document.getElementById('loginError');
+  const appContainer       = document.querySelector('.app-container');
+
+  function unlockApp() {
+    sessionStorage.setItem(AUTH_KEY, '1');
+    loginOverlay.style.opacity = '0';
+    loginOverlay.style.transition = 'opacity 0.4s ease';
+    setTimeout(() => {
+      loginOverlay.style.display = 'none';
+      appContainer.classList.remove('app-locked');
+    }, 400);
+  }
+
+  if (sessionStorage.getItem(AUTH_KEY) === '1') {
+    // Already authenticated this session — skip the gate immediately
+    loginOverlay.style.display = 'none';
+  } else {
+    // Lock the app behind the overlay
+    appContainer.classList.add('app-locked');
+    loginOverlay.style.display = 'flex';
+    loginPasswordInput.focus();
+  }
+
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (loginPasswordInput.value === CORRECT_PASSWORD) {
+      unlockApp();
+    } else {
+      // Show shake + error message
+      loginPasswordInput.value = '';
+      loginError.style.display = 'block';
+      // Re-trigger shake animation by removing and re-adding
+      loginError.style.animation = 'none';
+      void loginError.offsetWidth; // force reflow
+      loginError.style.animation = '';
+      loginPasswordInput.focus();
+    }
+  });
+  // ── End Password Gate ───────────────────────────────────────────────────────
+
   setupEventListeners();
   loadFromStorage();
   updateCurriculumUI();

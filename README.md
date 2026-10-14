@@ -1,3 +1,4 @@
+ https://samir-tech10.github.io/Student-performance-analyzer/
 # 📊 Student Performance Analyzer (Custom Curriculum, Full Marks & Pass Marks)
 A beginner-friendly, responsive web application tailored for teachers to analyze student academic performance. 
 Teachers can define their own custom subjects, exact **Full Marks**, and individual **Pass Marks** (for example: **Subject 1 = Maths, Fullmarks = 100, Passmark = 36**) for up to **20 subjects**.
